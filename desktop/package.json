@@ -1,0 +1,56 @@
+{
+  "name": "mind-map-desktop",
+  "version": "0.1.0",
+  "description": "Open-source Electron shell for mind-map",
+  "author": "mind-map contributors",
+  "private": true,
+  "main": "src/main.js",
+  "scripts": {
+    "test": "node --test tests/**/*.test.js",
+    "build:web": "npm run build --prefix ../web",
+    "sync:web": "node ./scripts/sync-web-build.js",
+    "dev": "npm run build:web && npm run sync:web && electron .",
+    "smoke": "npm run build:web && npm run sync:web && electron . --smoke-test",
+    "package:win": "npm run build:web && npm run sync:web && electron-builder --win nsis",
+    "package:mac": "npm run build:web && npm run sync:web && electron-builder --mac dmg zip --x64 --arm64"
+  },
+  "devDependencies": {
+    "electron": "^43.1.1",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "cn.sxmind.opensource.desktop",
+    "productName": "Mind Map",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "app/**/*",
+      "src/**/*",
+      "package.json"
+    ],
+    "mac": {
+      "icon": "build/icon.png",
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "category": "public.app-category.productivity"
+    },
+    "win": {
+      "icon": "build/icon.png",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}

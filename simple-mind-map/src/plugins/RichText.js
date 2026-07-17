@@ -97,7 +97,8 @@ class RichText {
       'richText',
       `
       .smm-richtext-node-wrap {
-        word-break: break-all;
+        word-break: normal;
+        overflow-wrap: normal;
         user-select: none;
       }
 
@@ -244,7 +245,8 @@ class RichText {
             : 'box-shadow: 0 0 20px rgba(0,0,0,.5);'
         }
         outline: none;
-        word-break: break-all;
+        word-break: normal;
+        overflow-wrap: normal;
         padding: ${paddingY}px ${paddingX}px;
         line-height: 1.2;
       `
@@ -275,7 +277,8 @@ class RichText {
     this.textEditNode.style.left = rect.left + 'px'
     this.textEditNode.style.top = rect.top + 'px'
     this.textEditNode.style.display = 'block'
-    this.textEditNode.style.maxWidth = textAutoWrapWidth + paddingX * 2 + 'px'
+    this.textEditNode.style.maxWidth =
+      Math.max(textAutoWrapWidth, originWidth) + paddingX * 2 + 'px'
     this.textEditNode.style.transform = `scale(${scaleX}, ${scaleY})`
     this.textEditNode.style.transformOrigin = 'left top'
     // 节点文本内容

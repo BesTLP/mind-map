@@ -1,0 +1,68 @@
+name: Desktop builds
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - windows-latest
+          - macos-latest
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: |
+            simple-mind-map/package-lock.json
+            web/package-lock.json
+            desktop/package-lock.json
+
+      - name: Install dependencies
+        shell: bash
+        run: |
+          npm ci --prefix simple-mind-map
+          npm ci --prefix web
+          npm ci --prefix desktop
+
+      - name: Test core and desktop
+        shell: bash
+        run: |
+          npm test --prefix simple-mind-map -- tests/textWrap.spec.js
+          npm test --prefix desktop
+
+      - name: Build Windows installer
+        if: runner.os == 'Windows'
+        run: npm run package:win --prefix desktop
+
+      - name: Build macOS packages
+        if: runner.os == 'macOS'
+        run: npm run package:mac --prefix desktop
+
+      - name: Upload Windows installer
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: mind-map-windows
+          path: desktop/release/*.exe
+          if-no-files-found: error
+
+      - name: Upload macOS packages
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v4
+        with:
+          name: mind-map-macos
+          path: |
+            desktop/release/*.dmg
+            desktop/release/*.zip
+          if-no-files-found: error

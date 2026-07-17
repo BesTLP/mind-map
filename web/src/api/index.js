@@ -15,7 +15,7 @@ export const getData = () => {
   // 接管模式
   if (window.takeOverApp) {
     mindMapData = window.takeOverAppMethods.getMindMapData()
-    return mindMapData
+    return mindMapData || simpleDeepClone(exampleData)
   }
   // 操作本地文件模式
   if (vuexStore.state.isHandleLocalFile) {
@@ -61,17 +61,14 @@ export const storeData = data => {
     localStorage.setItem(SIMPLE_MIND_MAP_DATA, JSON.stringify(originData))
   } catch (error) {
     console.log(error)
-    if ('exceeded') {
-      Vue.prototype.$bus.$emit('localStorageExceeded')
-    }
+    Vue.prototype.$bus.$emit('localStorageExceeded')
   }
 }
 
 // 获取思维导图配置数据
 export const getConfig = () => {
   if (window.takeOverApp) {
-    window.takeOverAppMethods.getMindMapConfig()
-    return
+    return window.takeOverAppMethods.getMindMapConfig()
   }
   let config = localStorage.getItem(SIMPLE_MIND_MAP_CONFIG)
   if (config) {

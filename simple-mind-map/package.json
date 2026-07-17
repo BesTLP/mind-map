@@ -18,6 +18,8 @@
   "scripts": {
     "lint": "eslint src/",
     "format": "prettier --write .",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "types": "npx -p typescript tsc index.js --declaration --allowJs --emitDeclarationOnly --outDir types --target es2017 --skipLibCheck & node ./bin/createPluginsTypeFiles.js",
     "wsServe": "node ./bin/wsServer.mjs"
   },
@@ -48,6 +50,8 @@
   ],
   "devDependencies": {
     "eslint": "^8.25.0",
-    "prettier": "^2.7.1"
+    "jsdom": "^29.1.1",
+    "prettier": "^2.7.1",
+    "vitest": "^4.1.10"
   }
 }

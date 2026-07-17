@@ -7,11 +7,13 @@ import {
   addXmlns,
   generateColorByContent,
   camelCaseToHyphen,
-  getNodeRichTextStyles
+  getNodeRichTextStyles,
+  nodeRichTextToTextWithWrap
 } from '../../../utils'
 import { Image as SVGImage, SVG, A, G, Rect, Text } from '@svgdotjs/svg.js'
 import iconsSvg from '../../../svg/icons'
 import { noneRichTextNodeLineHeight } from '../../../constants/constant'
+import { wrapTextForDisplay } from './textWrap'
 
 // 测量svg文本宽高
 const measureText = (text, style) => {
@@ -183,12 +185,20 @@ function createRichTextNode(specifyText) {
     div.style[prop] = value
   })
   div.style.lineHeight = 1.2
+  const wrapData = wrapTextForDisplay({
+    text: nodeRichTextToTextWithWrap(text),
+    maxWidth: textAutoWrapWidth,
+    measureText: currentText => measureText(currentText, this.style)
+  })
+  const effectiveWrapWidth = hasCustomWidth
+    ? this.customTextWidth
+    : wrapData.effectiveMaxWidth
   const html = `<div>${text}</div>`
   div.innerHTML = html
   const el = div.children[0]
   el.classList.add('smm-richtext-node-wrap')
   addXmlns(el)
-  el.style.maxWidth = textAutoWrapWidth + 'px'
+  el.style.maxWidth = effectiveWrapWidth + 'px'
   if (hasCustomWidth) {
     el.style.width = this.customTextWidth + 'px'
   } else {
@@ -204,6 +214,9 @@ function createRichTextNode(specifyText) {
     div.innerHTML = html
   }
   width = Math.min(Math.ceil(width) + 1, textAutoWrapWidth) // 修复getBoundingClientRect方法对实际宽度是小数的元素获取到的值是整数，导致宽度不够文本发生换行的问题
+  if (effectiveWrapWidth > textAutoWrapWidth) {
+    width = Math.max(width, effectiveWrapWidth)
+  }
   height = Math.ceil(height)
   g.attr('data-width', width)
   g.attr('data-height', height)
@@ -254,30 +267,13 @@ function createTextNode(specifyText) {
   }
   const { textAutoWrapWidth: maxWidth, emptyTextMeasureHeightText } =
     this.mindMap.opt
-  let isMultiLine = textArr.length > 1
-  textArr.forEach((item, index) => {
-    let arr = item.split('')
-    let lines = []
-    let line = []
-    while (arr.length) {
-      let str = arr.shift()
-      let text = [...line, str].join('')
-      if (measureText(text, this.style).width <= maxWidth) {
-        line.push(str)
-      } else {
-        lines.push(line.join(''))
-        line = [str]
-      }
-    }
-    if (line.length > 0) {
-      lines.push(line.join(''))
-    }
-    if (lines.length > 1) {
-      isMultiLine = true
-    }
-    textArr[index] = lines.join('\n')
+  const wrapData = wrapTextForDisplay({
+    text,
+    maxWidth,
+    measureText: currentText => measureText(currentText, this.style)
   })
-  textArr = textArr.join('\n').replace(/\n$/g, '').split(/\n/gim)
+  const effectiveMaxWidth = wrapData.effectiveMaxWidth
+  textArr = wrapData.lines
   textArr.forEach((item, index) => {
     // 避免尾部的空行不占宽度
     // 同时解决该问题：https://github.com/wanglin2/mind-map/issues/1037
@@ -310,10 +306,13 @@ function createTextNode(specifyText) {
     height = tmpBbox.height
   }
   width = Math.min(Math.ceil(width), maxWidth)
+  if (effectiveMaxWidth > maxWidth) {
+    width = Math.max(width, effectiveMaxWidth)
+  }
   height = Math.ceil(height)
   g.attr('data-width', width)
   g.attr('data-height', height)
-  g.attr('data-ismultiLine', isMultiLine || textArr.length > 1)
+  g.attr('data-ismultiLine', wrapData.isMultiLine)
   return {
     node: g,
     width,
