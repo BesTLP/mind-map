@@ -6,7 +6,7 @@
   "private": true,
   "main": "src/main.js",
   "scripts": {
-    "test": "node --test tests/**/*.test.js",
+    "test": "node --test tests/ipc.test.js tests/navigation.test.js tests/store.test.js",
     "build:web": "npm run build --prefix ../web",
     "sync:web": "node ./scripts/sync-web-build.js",
     "dev": "npm run build:web && npm run sync:web && electron .",
