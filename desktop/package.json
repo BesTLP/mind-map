@@ -1,6 +1,6 @@
 {
   "name": "mind-map-desktop",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Open-source Electron shell for mind-map",
   "author": "mind-map contributors",
   "private": true,

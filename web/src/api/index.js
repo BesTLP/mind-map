@@ -10,12 +10,55 @@ const SIMPLE_MIND_MAP_LOCAL_CONFIG = 'SIMPLE_MIND_MAP_LOCAL_CONFIG'
 
 let mindMapData = null
 
+const isObject = value => {
+  return value && typeof value === 'object' && !Array.isArray(value)
+}
+
+export const isCompleteMindMapData = data => {
+  return Boolean(
+    isObject(data) &&
+      isObject(data.root) &&
+      typeof data.layout === 'string' &&
+      isObject(data.theme) &&
+      typeof data.theme.template === 'string' &&
+      isObject(data.theme.config)
+  )
+}
+
+export const normalizeMindMapData = data => {
+  const defaultData = simpleDeepClone(exampleData)
+  const source = isObject(data) ? data : {}
+  const theme = isObject(source.theme) ? source.theme : {}
+  return {
+    ...defaultData,
+    ...source,
+    root: isObject(source.root) ? source.root : defaultData.root,
+    layout:
+      typeof source.layout === 'string' && source.layout
+        ? source.layout
+        : defaultData.layout,
+    theme: {
+      ...defaultData.theme,
+      ...theme,
+      template:
+        typeof theme.template === 'string' && theme.template
+          ? theme.template
+          : defaultData.theme.template,
+      config: isObject(theme.config) ? theme.config : defaultData.theme.config
+    }
+  }
+}
+
 // 获取缓存的思维导图数据
 export const getData = () => {
   // 接管模式
   if (window.takeOverApp) {
-    mindMapData = window.takeOverAppMethods.getMindMapData()
-    return mindMapData || simpleDeepClone(exampleData)
+    const storedData = window.takeOverAppMethods.getMindMapData()
+    mindMapData = normalizeMindMapData(storedData)
+    if (!isCompleteMindMapData(storedData)) {
+      window.takeOverAppMethods.saveMindMapData(mindMapData)
+    }
+    return mindMapData
   }
   // 操作本地文件模式
   if (vuexStore.state.isHandleLocalFile) {
@@ -26,7 +69,7 @@ export const getData = () => {
     return simpleDeepClone(exampleData)
   } else {
     try {
-      return JSON.parse(store)
+      return normalizeMindMapData(JSON.parse(store))
     } catch (error) {
       return simpleDeepClone(exampleData)
     }
