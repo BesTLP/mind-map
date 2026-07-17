@@ -3,6 +3,8 @@ name: Desktop builds
 on:
   workflow_dispatch:
   push:
+    branches:
+      - feat/english-wrap-desktop-shell
     tags:
       - 'v*'
 
